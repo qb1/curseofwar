@@ -234,30 +234,31 @@ void run_server (struct state *st, int cl_num_need, char *s_server_port, struct 
               if (found_i>-1) {
                 int msg = server_process_msg_c(buf, nread, st, cl[found_i].pl);
                 if (msg == MSG_C_IS_ALIVE) addstr(".");
-								else { 
-									addstr("+");
-									server_send_msg_s_state(sfd, cl, cl_num, st);
-								}
-								refresh();
-							}
-						}else{	
-
-							int valturns=0;
-							int i;
-							for(i=0; i<MAX_PLAYER; ++i) {
-								valturns+=st->turn_validated[i];
-								refresh();
-							}
-							if( valturns >= cl_num )
-							{
-								for(i=0; i<MAX_PLAYER; ++i) {
-									st->turn_validated[i]=0;
-								}
-
-								turns=op->frames_per_turn;
-							}
-						}
+					else { 
+						addstr("+");
+						server_send_msg_s_state(sfd, cl, cl_num, st);
 					}
+					refresh();
+				}
+			}else{	
+
+				int valturns=0;
+				int i;
+				for(i=0; i<MAX_PLAYER; ++i) {
+					valturns+=st->turn_validated[i];
+					refresh();
+				}
+				if( valturns >= cl_num )
+				{
+					for(i=0; i<MAX_PLAYER; ++i) {
+						st->turn_validated[i]=0;
+					}
+
+					turns=op->frames_per_turn;
+				}
+			}
+		}
+
           break;
       }
 
