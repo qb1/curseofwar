@@ -88,6 +88,9 @@ void process_msg_c (struct state *st, int pl, uint8_t msg, struct msg_c_data *cm
       break;
     case MSG_C_IS_ALIVE:
       break;
+	case MSG_C_VALIDATE_TURN:
+	  st->turn_validated[pl]=1;
+	  break;
     case MSG_C_PAUSE:
     case MSG_C_UNPAUSE:
     default:

@@ -26,7 +26,7 @@ int client_connect ();
 
 int client_process_msg_s_state (struct state *st, struct msg_s_data *msg) {
 
-  if (ntohl( msg->time ) <= st->time) return -1;
+  if (ntohl( msg->time ) < st->time) return -1;
 
   int p, i, j;
   for (p=0; p<MAX_PLAYER; ++p) {
@@ -150,6 +150,10 @@ int client_process_input (struct state *st, struct ui *ui, char c, int sfd, stru
       case 'v':
         send_msg_c (sfd, srv_addr, MSG_C_BUILD, ui->cursor.i, ui->cursor.j, 0);
         break;
+
+	  case 'o':
+		send_msg_c (sfd, srv_addr, MSG_C_VALIDATE_TURN, 0, 0, 0);
+		break;
       
       case ESCAPE:
       case 91:

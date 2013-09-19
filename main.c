@@ -170,6 +170,7 @@ void run_server (struct state *st, int cl_num_need, char *s_server_port) {
   fcntl(sfd, F_SETFL, O_NONBLOCK);
 
   int cl_num = 0;
+  int turns = 10;
   struct client_record cl[MAX_CLIENT];
   enum server_mode mode = server_mode_lobby;
   int finished = 0;
@@ -206,31 +207,59 @@ void run_server (struct state *st, int cl_num_need, char *s_server_port) {
           }
           break;
         case server_mode_play:
-          /* Game */
-          k++;
-          if (k>=1600) k=0;
-          int slowdown = game_slowdown(st->speed);
-          if (k % slowdown == 0 && st->speed != sp_pause) { 
-            kings_move(st);
-            simulate(st);
-            server_send_msg_s_state(sfd, cl, cl_num, st);
-          }
+		  /* Are we in turn enabled mode */
+		  if( turns > 0 )
+		  {
+            /* Game */
+              k++;
+            if (k>=1600) k=0;
+            int slowdown = game_slowdown(st->speed);
+            if (k % slowdown == 0 && st->speed != sp_pause) { 
+              kings_move(st);
+              simulate(st);
+              server_send_msg_s_state(sfd, cl, cl_num, st);
+			  turns--;
+            }
+
+		  }else{
           
-          nread = recvfrom(sfd, buf, MSG_BUF_SIZE-1, 0,
-              (struct sockaddr *) &peer_addr, &peer_addr_len);
-          if (nread != -1) {
-            int found_i = -1;
-            int i;
-            for(i=0; i<cl_num; ++i) {
-              if (sa_match(&peer_addr, &cl[i].sa)) found_i = i;
+            nread = recvfrom(sfd, buf, MSG_BUF_SIZE-1, 0,
+                (struct sockaddr *) &peer_addr, &peer_addr_len);
+            if (nread != -1) {
+              int found_i = -1;
+              int i;
+              for(i=0; i<cl_num; ++i) {
+                if (sa_match(&peer_addr, &cl[i].sa)) found_i = i;
+              }
+              if (found_i>-1) {
+                int msg = server_process_msg_c(buf, nread, st, cl[found_i].pl);
+                if (msg == MSG_C_IS_ALIVE) addstr(".");
+                else { 
+					addstr("+");
+					//kings_move(st);
+					//simulate(st);	
+					server_send_msg_s_state(sfd, cl, cl_num, st);
+				}
+                refresh();
+              }
             }
-            if (found_i>-1) {
-              int msg = server_process_msg_c(buf, nread, st, cl[found_i].pl);
-              if (msg == MSG_C_IS_ALIVE) addstr(".");
-              else addstr("+");
-              refresh();
-            }
-          }
+
+			int valturns=0;
+			int i;
+			for(i=0; i<MAX_PLAYER; ++i) {
+				valturns+=st->turn_validated[i];
+				if( st->turn_validated[i] ) addstr("$");
+				refresh();
+			}
+			if( valturns >= cl_num )
+			{
+				 for(i=0; i<MAX_PLAYER; ++i) {
+	                 st->turn_validated[i]=0;
+	             }
+
+				 turns=10;
+			}
+	      }
           break;
       }
 

@@ -227,6 +227,7 @@ void output_grid(struct state *st, struct ui *ui, int ktime) {
   
   output_key (y+4, 30, "X", key_style, "remove all flags", text_style);
   output_key (y+5, 30, "C", key_style, "remove 50\% of flags", text_style);
+  output_key (y+6, 30, "O", key_style, "Validate turn", text_style);
   
   output_key (y+5, 57, "S", key_style, "slow down", text_style);
   output_key (y+4, 57, "F", key_style, "speed up", text_style);

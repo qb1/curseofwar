@@ -105,6 +105,9 @@ struct state {
   struct grid grid;
   struct flag_grid fg [MAX_PLAYER];
   struct king king [MAX_PLAYER];
+  int    turn_validated [MAX_PLAYER];
+  int    all_turn_validated;
+
   int kings_num;
 
   struct timeline timeline;

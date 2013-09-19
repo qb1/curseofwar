@@ -34,6 +34,7 @@
 #define MSG_C_IS_ALIVE 30
 #define MSG_C_PAUSE    40
 #define MSG_C_UNPAUSE  41
+#define MSG_C_VALIDATE_TURN 42
 
 /* message from a server to a client */
 #define MSG_S_CONN_ACCEPTED 5

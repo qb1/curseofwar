@@ -141,6 +141,12 @@ void state_init(struct state *s, struct basic_options *op, struct multi_options 
       s->timeline.data[p][i] = 0.0;
     }
   }
+
+  /* init turn by turn */
+  for(p=0; p<mop->clients_num; ++p) {
+	s->turn_validated[p] = 1;
+  }
+  s->all_turn_validated = mop->clients_num;
 }
 
 
@@ -227,7 +233,7 @@ int rnd_round(float x) {
 
 void kings_move(struct state *s) {
   int i;
-  int ev = 0;
+  int ev = 1;
   for(i=0; i<s->kings_num; ++i) {
     int pl = s->king[i].pl;
     place_flags(&s->king[i], &s->grid, &s->fg[pl]);
