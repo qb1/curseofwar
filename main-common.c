@@ -140,6 +140,7 @@ int get_options(int argc, char *argv[], struct basic_options *op, struct multi_o
   op->map_seed = rand();
   op->conditions = 0;
   op->timeline_flag = 0;
+  op->frames_per_turn = 0;
 
   op->inequality = RANDOM_INEQUALITY;
   op->shape = st_rect;
@@ -157,8 +158,17 @@ int get_options(int argc, char *argv[], struct basic_options *op, struct multi_o
 #ifndef WIN32
   opterr = 0;
   int c;
-  while ((c = getopt (argc, argv, "hvrTW:H:i:l:q:d:s:R:S:E:e:C:c:")) != -1){
+  while ((c = getopt (argc, argv, "hvrTt:W:H:i:l:q:d:s:R:S:E:e:C:c:")) != -1){
     switch(c){
+	  case 't': { char* endptr = NULL;
+                  op->frames_per_turn = strtol(optarg, &endptr, 10);
+                  if (*endptr != '\0' || op->frames_per_turn < 0 || op->frames_per_turn > 1000) {
+                   print_help();
+                   return 1;
+                 }
+                };
+                break;
+
       case 'r': op->keep_random_flag = 1; break;
       case 'T': op->timeline_flag = 1; break;
       case 'W': { char* endptr = NULL;

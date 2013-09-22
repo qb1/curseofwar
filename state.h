@@ -63,6 +63,7 @@ struct basic_options {
   unsigned int map_seed;
   int conditions;
   int timeline_flag;
+  int frames_per_turn;
 
   int inequality;
   enum stencil shape;
@@ -106,7 +107,6 @@ struct state {
   struct flag_grid fg [MAX_PLAYER];
   struct king king [MAX_PLAYER];
   int    turn_validated [MAX_PLAYER];
-  int    all_turn_validated;
 
   int kings_num;
 

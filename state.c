@@ -144,9 +144,8 @@ void state_init(struct state *s, struct basic_options *op, struct multi_options 
 
   /* init turn by turn */
   for(p=0; p<mop->clients_num; ++p) {
-	s->turn_validated[p] = 1;
+	s->turn_validated[p] = 0;
   }
-  s->all_turn_validated = mop->clients_num;
 }
 
 

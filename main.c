@@ -152,7 +152,7 @@ void run_client (struct state *st, struct ui *ui, char *s_server_addr, char *s_s
 }
 
 /* run server */
-void run_server (struct state *st, int cl_num_need, char *s_server_port) {
+void run_server (struct state *st, int cl_num_need, char *s_server_port, struct basic_options *op) {
   int sfd; /* file descriptor of the socket */
   struct sockaddr_storage peer_addr; /* address you receive a message from */
   socklen_t peer_addr_len = sizeof(struct sockaddr_storage);
@@ -170,7 +170,7 @@ void run_server (struct state *st, int cl_num_need, char *s_server_port) {
   fcntl(sfd, F_SETFL, O_NONBLOCK);
 
   int cl_num = 0;
-  int turns = 10;
+  int turns = op->frames_per_turn;
   struct client_record cl[MAX_CLIENT];
   enum server_mode mode = server_mode_lobby;
   int finished = 0;
@@ -207,9 +207,9 @@ void run_server (struct state *st, int cl_num_need, char *s_server_port) {
           }
           break;
         case server_mode_play:
-		  /* Are we in turn enabled mode */
-		  if( turns > 0 )
-		  {
+					/* Are we in turn enabled mode */
+					if( turns > 0 || op->frames_per_turn == 0 )
+					{
             /* Game */
               k++;
             if (k>=1600) k=0;
@@ -218,11 +218,11 @@ void run_server (struct state *st, int cl_num_need, char *s_server_port) {
               kings_move(st);
               simulate(st);
               server_send_msg_s_state(sfd, cl, cl_num, st);
-			  turns--;
+							turns--;
             }
-
-		  }else{
-          
+					}
+					if( turns <= 0 || op->frames_per_turn == 0 )
+          { 
             nread = recvfrom(sfd, buf, MSG_BUF_SIZE-1, 0,
                 (struct sockaddr *) &peer_addr, &peer_addr_len);
             if (nread != -1) {
@@ -234,32 +234,30 @@ void run_server (struct state *st, int cl_num_need, char *s_server_port) {
               if (found_i>-1) {
                 int msg = server_process_msg_c(buf, nread, st, cl[found_i].pl);
                 if (msg == MSG_C_IS_ALIVE) addstr(".");
-                else { 
-					addstr("+");
-					//kings_move(st);
-					//simulate(st);	
-					server_send_msg_s_state(sfd, cl, cl_num, st);
-				}
-                refresh();
-              }
-            }
+								else { 
+									addstr("+");
+									server_send_msg_s_state(sfd, cl, cl_num, st);
+								}
+								refresh();
+							}
+						}else{	
 
-			int valturns=0;
-			int i;
-			for(i=0; i<MAX_PLAYER; ++i) {
-				valturns+=st->turn_validated[i];
-				if( st->turn_validated[i] ) addstr("$");
-				refresh();
-			}
-			if( valturns >= cl_num )
-			{
-				 for(i=0; i<MAX_PLAYER; ++i) {
-	                 st->turn_validated[i]=0;
-	             }
+							int valturns=0;
+							int i;
+							for(i=0; i<MAX_PLAYER; ++i) {
+								valturns+=st->turn_validated[i];
+								refresh();
+							}
+							if( valturns >= cl_num )
+							{
+								for(i=0; i<MAX_PLAYER; ++i) {
+									st->turn_validated[i]=0;
+								}
 
-				 turns=10;
-			}
-	      }
+								turns=op->frames_per_turn;
+							}
+						}
+					}
           break;
       }
 
@@ -353,7 +351,7 @@ int main(int argc, char* argv[]){
     run(&st, &ui);
   }
   else {
-    if (mop.server_flag) run_server(&st, mop.clients_num, mop.val_server_port);
+    if (mop.server_flag) run_server(&st, mop.clients_num, mop.val_server_port, &op);
     else run_client(&st, &ui, mop.val_server_addr, mop.val_server_port, mop.val_client_port);
   }
 
