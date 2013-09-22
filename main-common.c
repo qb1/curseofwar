@@ -108,9 +108,10 @@ int win_or_lose(struct state *st) {
   }
   if(pop[st->controlled] == 0) lose = 1;
 
-  if (win) return 1;
-  else if (lose) return -1;
-  else return 0;
+  if (win) st->winlosecondition = 1;
+  else if (lose) st->winlosecondition = -1;
+
+  return st->winlosecondition;
 }
 
 

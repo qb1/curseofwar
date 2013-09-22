@@ -99,63 +99,6 @@ void output_grid(struct state *st, struct ui *ui, int ktime) {
     for (j=0; j<st->grid.height; ++j) {
 
       move(POSY(ui,i,j), POSX(ui,i,j)-1);
-      switch (st->grid.tiles[i][j].cl) {
-        case mountain: 
-          attrset(A_NORMAL | COLOR_PAIR(4));
-          addstr(" /\\^ "); 
-          break;
-        case mine: 
-          attrset(A_NORMAL | COLOR_PAIR(4));
-          addstr(" /$\\ "); 
-          move(POSY(ui,i,j), POSX(ui,i,j)+1);
-          if (st->grid.tiles[i][j].pl != NEUTRAL) 
-            attrset(A_BOLD | COLOR_PAIR(6));
-          else
-            attrset(A_NORMAL | COLOR_PAIR(6));
-          addstr("$"); 
-          break;
-        /*
-        case abyss: 
-          attrset(A_NORMAL | COLOR_PAIR(6));
-          addstr("  %  "); 
-          break;
-         */
-        case grassland: 
-          attrset(A_NORMAL | COLOR_PAIR(4));
-          addstr("  -  "); 
-          break;
-        case village: 
-          attrset(player_style(st->grid.tiles[i][j].pl));
-          addstr("  n  "); 
-          break;
-        case town: 
-          attrset(player_style(st->grid.tiles[i][j].pl));
-          addstr(" i=i "); 
-          break;
-        case castle: 
-          attrset(player_style(st->grid.tiles[i][j].pl));
-          addstr(" W#W "); 
-          break;
-        default:;
-      }
-      attrset(A_NORMAL | COLOR_PAIR(1));
-     
-      if (st->grid.tiles[i][j].cl == grassland) {
-        attrset(player_style(st->grid.tiles[i][j].pl));
-        output_units(ui, &st->grid.tiles[i][j], i, j);
-        attrset(A_NORMAL | COLOR_PAIR(1));
-      }
-
-      int p;
-      for (p=0; p<MAX_PLAYER; ++p) {
-        if (p != st->controlled) {
-          if (st->fg[p].flag[i][j] != 0 && ((ktime + p) / 5)%10 < 10) {
-            attrset(player_style(p));
-            mvaddch(POSY(ui,i,j), POSX(ui,i,j), 'x');
-            attrset(A_NORMAL | COLOR_PAIR(1));
-          }
-        }
-      }
 
       /* for of war */
       int k;
@@ -170,10 +113,83 @@ void output_grid(struct state *st, struct ui *ui, int ktime) {
           break;
         }
       }
-      if (false && !b){
-        move(POSY(ui,i,j), POSX(ui,i,j)-1);
-        addstr("     "); 
+
+
+      if (/*false &&*/ !b && st->winlosecondition == 0){
+        switch (st->grid.tiles[i][j].cl) {
+          case mountain: 
+          case mine: 
+          case grassland: 
+          case village: 
+          case town: 
+          case castle: 
+            attrset(A_NORMAL | COLOR_PAIR(1));
+            addstr("     "); 
+            break;
+          default:;
+        }        
+      }else{
+        switch (st->grid.tiles[i][j].cl) {
+          case mountain: 
+            attrset(A_NORMAL | COLOR_PAIR(4));
+            addstr(" /\\^ "); 
+            break;
+          case mine: 
+            attrset(A_NORMAL | COLOR_PAIR(4));
+            addstr(" /$\\ "); 
+            move(POSY(ui,i,j), POSX(ui,i,j)+1);
+            if (st->grid.tiles[i][j].pl != NEUTRAL) {
+              //attrset(A_BOLD | COLOR_PAIR(6));
+              attrset(player_style(st->grid.tiles[i][j].pl));
+            }else{
+              attrset(A_NORMAL | COLOR_PAIR(1));
+            }
+            addstr("$"); 
+            break;
+          /*
+          case abyss: 
+            attrset(A_NORMAL | COLOR_PAIR(6));
+            addstr("  %  "); 
+            break;
+           */
+          case grassland: 
+            attrset(A_NORMAL | COLOR_PAIR(4));
+            addstr("  -  "); 
+            break;
+          case village: 
+            attrset(player_style(st->grid.tiles[i][j].pl));
+            addstr("  n  "); 
+            break;
+          case town: 
+            attrset(player_style(st->grid.tiles[i][j].pl));
+            addstr(" i=i "); 
+            break;
+          case castle: 
+            attrset(player_style(st->grid.tiles[i][j].pl));
+            addstr(" W#W "); 
+            break;
+          default:;
+        }
+        attrset(A_NORMAL | COLOR_PAIR(1));
+       
+        if (st->grid.tiles[i][j].cl == grassland) {
+          attrset(player_style(st->grid.tiles[i][j].pl));
+          output_units(ui, &st->grid.tiles[i][j], i, j);
+          attrset(A_NORMAL | COLOR_PAIR(1));
+        }
+
+        /*int p;
+        for (p=0; p<MAX_PLAYER; ++p) {
+          if (p != st->controlled) {
+            if (st->fg[p].flag[i][j] != 0 && ((ktime + p) / 5)%10 < 10) {
+              attrset(player_style(p));
+              mvaddch(POSY(ui,i,j), POSX(ui,i,j), 'x');
+              attrset(A_NORMAL | COLOR_PAIR(1));
+            }
+          }
+        }*/
       }
+
       // player 1 flags
       if (st->fg[st->controlled].flag[i][j] != 0 && (ktime / 5)%10 < 10) {
         attrset(A_BOLD | COLOR_PAIR(1));

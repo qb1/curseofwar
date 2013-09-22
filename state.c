@@ -53,6 +53,7 @@ void state_init(struct state *s, struct basic_options *op, struct multi_options 
   s->map_seed = op->map_seed;
   s->conditions = op->conditions;
   s->inequality = op->inequality;
+  s->winlosecondition = 0;
   s->time = (1850 + rand()%100) * 360 + rand()%360;
 
   /* player controlled from the keyboard */
