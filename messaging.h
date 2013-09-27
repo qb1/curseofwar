@@ -41,6 +41,7 @@
 #define MSG_S_CONN_REJECTED 6
 
 #define MSG_S_STATE        10
+#define MSG_S_TURNSTARTS   11
 
 struct msg_c_data {
   uint8_t i;

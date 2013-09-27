@@ -523,6 +523,59 @@ void even (struct grid *g, int v[MAX_WIDTH][MAX_HEIGHT], int x, int y, int val) 
     even(g, v, x+dirs[k].i, y+dirs[k].j, val);
 }
 
+void recalc_call (struct grid *g, struct flag_grid *fg, int val) {
+  
+  int i, j, k, changed;
+  
+  /* Initiate value with flags */
+  for (i=0; i<g->width; ++i) {
+    for (j=0; j<g->height; ++j) {
+      if( fg->flag[i][j] ) {
+        fg->call[i][j] = val;
+      //}else if (is_a_city(g->tiles[i][j].cl)) {
+      //  fg->call[i][j] = val/2;
+      }else{
+        fg->call[i][j] = 0;
+      }
+    }
+  }
+  
+  /* parse call grid & update as long as it changes
+     TODO: not 0(n^2) */
+  int largest_value;
+  int ni, nj;
+  for( k=0, changed=1; k < (g->width*g->height) && changed; ++k )
+  {
+    changed = 0;
+    for (i=0; i<g->width; ++i) {
+      for (j=0; j<g->height; ++j) {
+        if (is_inhabitable(g->tiles[i][j].cl)) {
+          /* search for largest neighbor */
+          largest_value = fg->call[i][j] * 1.5;
+          
+          for(k=0; k<DIRECTIONS; ++k) {
+            ni = dirs[k].i + i;
+            nj = dirs[k].j + j;
+            if( ni >= 0 && ni < g->width && 
+                nj >= 0 && nj < g->height &&
+                fg->call[ni][nj] > largest_value )
+            {
+              largest_value = fg->call[ni][nj];
+            }            
+          }
+          
+          largest_value /= 1.5;
+          
+          if( largest_value > fg->call[i][j] ) {
+            fg->call[i][j] = largest_value;
+            changed = 1;
+          }
+        }
+      }
+    }    
+  }
+}
+
 void add_flag (struct grid *g, struct flag_grid *fg, int x, int y, int val) {
   // exit if
   if (x < 0 || x >= g->width || y < 0 || y >= g->height || 
@@ -539,7 +592,8 @@ void add_flag (struct grid *g, struct flag_grid *fg, int x, int y, int val) {
   }
   
   fg->flag[x][y] = FLAG_ON;
-  spread(g, u, fg->call, x, y, val, 1);
+  //spread(g, u, fg->call, x, y, val, 1);
+  recalc_call( g, fg, val );
 }
 
 void remove_flag (struct grid *g, struct flag_grid *fg, int x, int y, int val) {
@@ -558,7 +612,8 @@ void remove_flag (struct grid *g, struct flag_grid *fg, int x, int y, int val) {
   }
   
   fg->flag[x][y] = FLAG_OFF;
-  spread(g, u, fg->call, x, y, val, -1);
+  //spread(g, u, fg->call, x, y, val, -1);
+  recalc_call( g, fg, val );
 }
 
 void remove_flags_with_prob (struct grid *g, struct flag_grid *fg, float prob) {

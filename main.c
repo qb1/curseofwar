@@ -207,9 +207,9 @@ void run_server (struct state *st, int cl_num_need, char *s_server_port, struct 
           }
           break;
         case server_mode_play:
-					/* Are we in turn enabled mode */
-					if( turns > 0 || op->frames_per_turn == 0 )
-					{
+          /* Are we in turn enabled mode */
+          if( turns > 0 || op->frames_per_turn == 0 )
+          {
             /* Game */
               k++;
             if (k>=1600) k=0;
@@ -218,10 +218,10 @@ void run_server (struct state *st, int cl_num_need, char *s_server_port, struct 
               kings_move(st);
               simulate(st);
               server_send_msg_s_state(sfd, cl, cl_num, st);
-							turns--;
+              turns--;
             }
-					}
-					if( turns <= 0 || op->frames_per_turn == 0 )
+          }
+          if( turns <= 0 || op->frames_per_turn == 0 )
           { 
             nread = recvfrom(sfd, buf, MSG_BUF_SIZE-1, 0,
                 (struct sockaddr *) &peer_addr, &peer_addr_len);
@@ -234,30 +234,35 @@ void run_server (struct state *st, int cl_num_need, char *s_server_port, struct 
               if (found_i>-1) {
                 int msg = server_process_msg_c(buf, nread, st, cl[found_i].pl);
                 if (msg == MSG_C_IS_ALIVE) addstr(".");
-					else { 
-						addstr("+");
-						server_send_msg_s_state(sfd, cl, cl_num, st);
-					}
-					refresh();
-				}
-			}else{	
+          else { 
+            addstr("+");
+            server_send_msg_s_state(sfd, cl, cl_num, st);
+          }
+          refresh();
+        }
+      }else{  
 
-				int valturns=0;
-				int i;
-				for(i=0; i<MAX_PLAYER; ++i) {
-					valturns+=st->turn_validated[i];
-					refresh();
-				}
-				if( valturns >= cl_num )
-				{
-					for(i=0; i<MAX_PLAYER; ++i) {
-						st->turn_validated[i]=0;
-					}
+        int valturns=0;
+        int i;
+        for(i=0; i<cl_num; ++i) {
+        
+          if( st->pop_total[cl[i].pl] == 0 )
+            st->turn_validated[cl[i].pl] = 1;
+            
+          valturns += st->turn_validated[cl[i].pl];          
+          refresh();
+        }
+        if( valturns >= cl_num )
+        {
+          for(i=0; i<MAX_PLAYER; ++i) {
+            st->turn_validated[i]=0;
+          }
 
-					turns=op->frames_per_turn;
-				}
-			}
-		}
+          turns=op->frames_per_turn;
+          server_send_msg_s_turnstarts(sfd, cl, cl_num, st);
+        }
+      }
+    }
 
           break;
       }

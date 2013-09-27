@@ -43,6 +43,8 @@ struct client_record {
  */
 enum server_mode {server_mode_lobby, server_mode_play};
 
+void server_send_msg_s_turnstarts (int sfd, struct client_record cl[], int cl_num, struct state *st);
+
 void server_send_msg_s_state (int sfd, struct client_record cl[], int cl_num, struct state *st);
 
 int server_process_msg_c (uint8_t buf[MSG_BUF_SIZE], int nread, struct state *st, int pl);

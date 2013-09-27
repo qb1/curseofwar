@@ -29,6 +29,7 @@
 #define DIRECTIONS 6  /* number of neighbors on the grid */
 
 #define MAX_POP 499   /* maximum polulation at a tile (for each player) */
+#define MIN_POP_CITY 349   /* minimum population before a city can migrate */
 
 #define MAX_TIMELINE_MARK 72
 

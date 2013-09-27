@@ -257,6 +257,10 @@ void simulate(struct state *s) {
 
   /* increment time */
   s->time++;
+  
+  for(i=0; i<MAX_PLAYER; ++i){
+    s->pop_total[i] = 0;
+  }
 
   /* per tile events */
   for(i=0; i<s->grid.width; ++i) {
@@ -334,12 +338,14 @@ void simulate(struct state *s) {
         //npop = npop - rnd_round(0.01*pow(pop,1.5));
         //npop = npop - rnd_round(1.0e-20 * pow(2.0,pop));
         //npop = MAX(npop, 0);
-        t[i][j].units[owner][citizen] = npop;
+        t[i][j].units[owner][citizen] = npop;        
       }
+      
+      s->pop_total[t[i][j].pl] += t[i][j].units[t[i][j].pl][citizen];
     }
   }
   /* migration */
-  int k, di, dj, p;
+  int k, di, dj, p, l;
 
   int i_start, i_end, i_inc;
   int j_start, j_end, j_inc;
@@ -352,24 +358,81 @@ void simulate(struct state *s) {
 
   for(i=i_start; i!=i_end; i+=i_inc) {
     for(j=j_start; j!=j_end; j+=j_inc) {
-      for(p=0; p<MAX_PLAYER; ++p){
+    
+      if( !is_inhabitable (t[i][j].cl) )
+        continue;
+        
+      /* We have a tile to migrate from. Parse neighbors for each player & direction */      
+      for(p=0; p<MAX_PLAYER; ++p){        
         int initial_pop = t[i][j].units[p][citizen];
-
+        
+        if( (is_a_city(t[i][j].cl) && initial_pop < MIN_POP_CITY) )
+          continue;
+        
         int k_shift = rand() % DIRECTIONS;
         for(k=0; k<DIRECTIONS; ++k) {
+                  
           di = dirs[(k + k_shift) % DIRECTIONS].i;
           dj = dirs[(k + k_shift) % DIRECTIONS].j;
-          if( i+di >= 0 && i+di < s->grid.width && 
-              j+dj >= 0 && j+dj < s->grid.height &&
-              is_inhabitable (t[i+di][j+dj].cl) ) {
-            int pop = t[i][j].units[p][citizen];
-            int dcall = MAX(0, s->fg[p].call[i+di][j+dj] - s->fg[p].call[i][j]);
-            if (pop > 0) {
-              int dpop = rnd_round (MOVE * initial_pop + CALL_MOVE * dcall * initial_pop);
-              dpop = MIN(dpop, pop);
-              dpop = MIN(dpop, MAX_POP - t[i+di][j+dj].units[p][citizen]);
-              t[i+di][j+dj].units[p][citizen] += dpop;
-              t[i][j].units[p][citizen] -= dpop;
+          
+          /* look for a case we can migrate to, up to 32 apart, quite randomly */
+          for( l=0; l<8; ++l )
+          {
+            if( i+di >= 0 && i+di < s->grid.width && 
+                j+dj >= 0 && j+dj < s->grid.height &&
+                is_inhabitable (t[i+di][j+dj].cl) ) {
+              
+              if( t[i+di][j+dj].units[p][citizen] >= MAX_POP )
+              {
+                /* This tile is full, go to another one in a random direction */
+                int m, m_shift = rand() % DIRECTIONS;
+                int ddi=0, ddj=0;
+                for(m=0; m<DIRECTIONS; ++m) {
+                  ddi = dirs[(m+m_shift) % DIRECTIONS].i;
+                  ddj = dirs[(m+m_shift) % DIRECTIONS].j;
+                  if ( i+di+ddi >= 0 && i+di+ddi < s->grid.width && 
+                       j+dj+ddj >= 0 && j+dj+ddj < s->grid.height &&
+                       is_inhabitable (t[i+di+ddi][j+dj+ddj].cl) &&
+                        t[i+di+ddi][j+dj+ddj].units[p][citizen] < MAX_POP ) {
+                    di += ddi;
+                    dj += ddj;
+                  }
+                }
+                
+                if( ddi == 0 && ddj == 0 )
+                {
+                  for(m=0; m<DIRECTIONS; ++m) {
+                    ddi = dirs[(m+m_shift) % DIRECTIONS].i;
+                    ddj = dirs[(m+m_shift) % DIRECTIONS].j;
+                    if ( is_inhabitable (t[i+di+ddi][j+dj+ddj].cl) ) {
+                      di += ddi;
+                      dj += ddj;
+                      break;
+                    }
+                  }
+                }
+                continue;
+              }
+              
+              /* A case we can migrate to */
+              int pop = t[i][j].units[p][citizen];
+              int dcall = MAX(0, s->fg[p].call[i+di][j+dj] - s->fg[p].call[i][j]);
+              
+              if (!is_a_city(t[i][j].cl) && pop > 0) {
+                int dpop = rnd_round (MOVE * initial_pop + CALL_MOVE * dcall * initial_pop);
+                dpop = MIN(dpop, pop);
+                dpop = MIN(dpop, MAX_POP - t[i+di][j+dj].units[p][citizen]);
+                t[i+di][j+dj].units[p][citizen] += dpop;
+                t[i][j].units[p][citizen] -= dpop;
+              }
+              if (is_a_city(t[i][j].cl) && pop > MIN_POP_CITY) {
+                int dpop = rnd_round ( (initial_pop-MIN_POP_CITY)/6 );
+                dpop = MIN(dpop, pop);
+                dpop = MIN(dpop, MAX_POP - t[i+di][j+dj].units[p][citizen]);
+                t[i+di][j+dj].units[p][citizen] += dpop;
+                t[i][j].units[p][citizen] -= dpop;
+              }
+              break;
             }
           }
         }

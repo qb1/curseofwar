@@ -27,7 +27,7 @@
 
 #define FLAG_ON 1
 #define FLAG_OFF 0
-#define FLAG_POWER 8
+#define FLAG_POWER 32
 
 #define RANDOM_INEQUALITY -1
 #define MAX_AVLBL_LOC 7

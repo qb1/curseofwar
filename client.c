@@ -19,6 +19,7 @@
 ******************************************************************************/
 #include "client.h"
 #include "state.h"
+#include "curses.h"
 
 int client_init ();
 
@@ -86,6 +87,10 @@ int client_receive_msg_s (int sfd, struct state *st) {
           client_process_msg_s_state (st, &msg_data);
         }
         else {return -1;}
+        break;
+      case MSG_S_TURNSTARTS:
+        flash();
+        beep();
         break;
     }
   }

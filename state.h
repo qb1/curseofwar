@@ -107,6 +107,7 @@ struct state {
   struct flag_grid fg [MAX_PLAYER];
   struct king king [MAX_PLAYER];
   int    turn_validated [MAX_PLAYER];
+  int    pop_total [MAX_PLAYER];
 
   int kings_num;
 

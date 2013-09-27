@@ -100,22 +100,40 @@ void output_grid(struct state *st, struct ui *ui, int ktime) {
 
       move(POSY(ui,i,j), POSX(ui,i,j)-1);
 
-      /* for of war */
+      /* fog of war */
       int k;
       int b = 0;
-      for(k=0; k<DIRECTIONS; ++k) {
-        int di = dirs[k].i;
-        int dj = dirs[k].j;
-        if( i+di >= 0 && i+di < st->grid.width && 
-            j+dj >= 0 && j+dj < st->grid.height &&
-            (st->grid.tiles[i+di][j+dj].units[st->controlled][citizen] > 0) ) {
-          b = 1;
-          break;
+      if (st->grid.tiles[i][j].units[st->controlled][citizen] > 0) {
+        b = 1; 
+      } else {
+        for(k=0; k<DIRECTIONS; ++k) {
+          int di = dirs[k].i;
+          int dj = dirs[k].j;
+          if( i+di >= 0 && i+di < st->grid.width && 
+              j+dj >= 0 && j+dj < st->grid.height &&
+              (st->grid.tiles[i+di][j+dj].units[st->controlled][citizen] > 0) ) {
+            b = 1;
+            break;
+          }
         }
       }
 
-
-      if (/*false &&*/ !b && st->winlosecondition == 0){
+      if( 0 ) {
+        char buf[32];
+        switch (st->grid.tiles[i][j].cl) {
+          case mountain: 
+          case mine: 
+          case grassland: 
+          case village: 
+          case town: 
+          case castle:             
+            sprintf(buf, " %.2i  ", st->fg[st->controlled].call[i][j]);
+            attrset(A_NORMAL | COLOR_PAIR(1));
+            addstr(buf); 
+            break;
+          default:;
+        }        
+      } else if (/*false &&*/ !b && st->winlosecondition == 0){
         switch (st->grid.tiles[i][j].cl) {
           case mountain: 
           case mine: 
@@ -178,16 +196,20 @@ void output_grid(struct state *st, struct ui *ui, int ktime) {
           attrset(A_NORMAL | COLOR_PAIR(1));
         }
 
-        /*int p;
-        for (p=0; p<MAX_PLAYER; ++p) {
-          if (p != st->controlled) {
-            if (st->fg[p].flag[i][j] != 0 && ((ktime + p) / 5)%10 < 10) {
-              attrset(player_style(p));
-              mvaddch(POSY(ui,i,j), POSX(ui,i,j), 'x');
-              attrset(A_NORMAL | COLOR_PAIR(1));
+        /* other players' flags */
+        if( st->winlosecondition )
+        {
+          int p;
+          for (p=0; p<MAX_PLAYER; ++p) {
+            if (p != st->controlled) {
+              if (st->fg[p].flag[i][j] != 0 && ((ktime + p) / 5)%10 < 10) {
+                attrset(player_style(p));
+                mvaddch(POSY(ui,i,j), POSX(ui,i,j), 'x');
+                attrset(A_NORMAL | COLOR_PAIR(1));
+              }
             }
           }
-        }*/
+        }
       }
 
       // player 1 flags
@@ -254,6 +276,7 @@ void output_grid(struct state *st, struct ui *ui, int ktime) {
     if (p == NEUTRAL) continue;
     attrset(player_style(p));
     sprintf(buf, "%3i", st->grid.tiles[i][j].units[p][citizen]);
+    //sprintf(buf, "%3i", st->pop_total[p]);
     mvaddstr(y+2, 30 + p*5, buf);
     /*
     sprintf(buf, "%10li", st->country[p].gold);

@@ -20,6 +20,21 @@
 #include "server.h"
 #include "messaging.h"
 
+void server_send_msg_s_turnstarts (int sfd, struct client_record cl[], int cl_num, struct state *st) {
+  static uint8_t buf[1];
+  int i;
+  
+  buf[0] = MSG_S_TURNSTARTS;
+  int n_to_send = 1;
+
+  /* send */
+  socklen_t peer_addr_len;
+  for (i=0; i<cl_num; ++i) {
+    peer_addr_len = sizeof (cl[i].sa);
+    sendto(sfd, buf, n_to_send, 0, (struct sockaddr *) &cl[i].sa, peer_addr_len);
+  }
+}
+
 void server_send_msg_s_state (int sfd, struct client_record cl[], int cl_num, struct state *st) {
   static uint8_t buf[MSG_BUF_SIZE];
   static struct msg_s_data msg_data;
