@@ -21,21 +21,20 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-#define MAX_PLAYER 8  /* number of players (countries) */
-#define NEUTRAL 0     /* neutral player */
-#define MAX_CLASS 1   /* classes of units. only one exists. */
-#define MAX_WIDTH 40  /* max map width */
-#define MAX_HEIGHT 29 /* max map height */
-#define DIRECTIONS 6  /* number of neighbors on the grid */
-
-#define MAX_POP 499   /* maximum polulation at a tile (for each player) */
-#define MIN_POP_CITY 349   /* minimum population before a city can migrate */
+#define MAX_PLAYER 7        /* number of players (countries) */
+#define NEUTRAL -1          /* neutral player */
+#define MAX_CLASS 1         /* classes of units. only one exists. */
+#define MAX_WIDTH 40        /* max map width */
+#define MAX_HEIGHT 29       /* max map height */
+#define DIRECTIONS 6        /* number of neighbors on the grid */
 
 #define MAX_TIMELINE_MARK 72
 
 #define MIN(x,y) (x<y)?(x):(y)
 #define MAX(x,y) (x<y)?(y):(x)
 #define IN_SEGMENT(x,l,r) (((x)<(l))?(l) : ( ((x)>(r))?(r):(x) ))
+#define STRINGIFY(s) #s
+#define XSTRINGIFY(s) STRINGIFY(s)
 
 #define ESCAPE     '\033'
 #define K_UP       65

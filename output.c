@@ -29,14 +29,14 @@
 /* Returns a color_pair number for a player p */
 int player_color(int p) {
   switch(p) {
-    case 0: return 6; // Neutral 
-    case 1: return 4; // Green (player)
-    case 2: return 5; // Blue
-    case 3: return 3; // Red
-    case 4: return 6; // Yellow
-    case 5: return 7; // Magenta
-    case 6: return 8; // Cyan
-    case 7: return 2; // Black
+    case NEUTRAL: return 6; // Neutral 
+    case 0: return 4; // Green (player)
+    case 1: return 5; // Blue
+    case 2: return 3; // Red
+    case 3: return 6; // Yellow
+    case 4: return 7; // Magenta
+    case 5: return 8; // Cyan
+    case 6: return 2; // Black
     default: return -1;
   }
 }
@@ -120,31 +120,15 @@ void output_grid(struct state *st, struct ui *ui, int ktime) {
 
       if( 0 ) {
         char buf[32];
-        switch (st->grid.tiles[i][j].cl) {
-          case mountain: 
-          case mine: 
-          case grassland: 
-          case village: 
-          case town: 
-          case castle:             
+        if( is_visible(st->grid.tiles[i][j].cl) ) {           
             sprintf(buf, " %.2i  ", st->fg[st->controlled].call[i][j]);
             attrset(A_NORMAL | COLOR_PAIR(1));
             addstr(buf); 
-            break;
-          default:;
         }        
       } else if (/*false &&*/ !b && st->winlosecondition == 0){
-        switch (st->grid.tiles[i][j].cl) {
-          case mountain: 
-          case mine: 
-          case grassland: 
-          case village: 
-          case town: 
-          case castle: 
+        if( is_visible(st->grid.tiles[i][j].cl) ) {  
             attrset(A_NORMAL | COLOR_PAIR(1));
             addstr("     "); 
-            break;
-          default:;
         }        
       }else{
         switch (st->grid.tiles[i][j].cl) {
@@ -185,6 +169,10 @@ void output_grid(struct state *st, struct ui *ui, int ktime) {
           case castle: 
             attrset(player_style(st->grid.tiles[i][j].pl));
             addstr(" W#W "); 
+            break;
+          case tower:
+            attrset(player_style(st->grid.tiles[i][j].pl));
+            addstr(" |^| "); 
             break;
           default:;
         }
@@ -239,7 +227,7 @@ void output_grid(struct state *st, struct ui *ui, int ktime) {
   mvaddstr(y, 8, buf);
   mvaddstr(y, 8, buf);
   attrset(A_NORMAL | COLOR_PAIR(1));
-  mvaddstr(y+1, 0, " Prices: 150, 300, 600.");
+  mvaddstr(y+1, 0, " Prices: " XSTRINGIFY(PRICE_VILLAGE) ", " XSTRINGIFY(PRICE_TOWN) ", " XSTRINGIFY(PRICE_CASTLE) ".");
   
   move(y+2, 1);
   addstr("Speed: ");
@@ -261,7 +249,8 @@ void output_grid(struct state *st, struct ui *ui, int ktime) {
   int key_style = player_style(st->controlled);
   
   output_key (y+4, 1, "Space", key_style, "add/remove a flag", text_style);
-  output_key (y+5, 1, "R or V", key_style, "build", text_style);
+  output_key (y+5, 1, "R or V", key_style, "build/upgrade town", text_style);
+  output_key (y+6, 1, "T", key_style, "build tower (" XSTRINGIFY(PRICE_TOWER) ")", text_style);
   
   output_key (y+4, 30, "X", key_style, "remove all flags", text_style);
   output_key (y+5, 30, "C", key_style, "remove 50\% of flags", text_style);
@@ -275,7 +264,7 @@ void output_grid(struct state *st, struct ui *ui, int ktime) {
   for(p=0; p<MAX_PLAYER; ++p) {
     if (p == NEUTRAL) continue;
     attrset(player_style(p));
-    sprintf(buf, "%3i", st->grid.tiles[i][j].units[p][citizen]);
+    sprintf(buf, "%4i", st->grid.tiles[i][j].units[p][citizen]);
     //sprintf(buf, "%3i", st->pop_total[p]);
     mvaddstr(y+2, 30 + p*5, buf);
     /*

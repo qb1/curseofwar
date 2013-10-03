@@ -34,6 +34,8 @@ struct country {
 #define PRICE_TOWN 300
 #define PRICE_CASTLE 600
 
+#define PRICE_TOWER 50
+
 /*
   build(&g, &c, pl, i, j)
 
@@ -48,6 +50,8 @@ struct country {
     Returns 0 on success, and -1 on failure
  */
 int build (struct grid *g, struct country *c, int pl, int i, int j);
+
+int build_tower (struct grid *g, struct country *c, int pl, int i, int j);
 
 /*
   degrade(&g, i, j) 

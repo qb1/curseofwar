@@ -89,6 +89,9 @@ void process_msg_c (struct state *st, int pl, uint8_t msg, struct msg_c_data *cm
     case MSG_C_BUILD:
       build (&st->grid, &st->country[pl], pl, cm->i, cm->j);
       break;
+    case MSG_C_BUILD_TOWER:
+      build_tower (&st->grid, &st->country[pl], pl, cm->i, cm->j);
+      break;
     case MSG_C_FLAG_ON:
       add_flag (&st->grid, &st->fg[pl], cm->i, cm->j, FLAG_POWER);
       break;
@@ -98,9 +101,10 @@ void process_msg_c (struct state *st, int pl, uint8_t msg, struct msg_c_data *cm
     case MSG_C_FLAG_OFF_ALL:
       remove_flags_with_prob (&st->grid, &st->fg[pl], 1.0);
       break;
-    case MSG_C_FLAG_OFF_HALF:
+    /*case MSG_C_FLAG_OFF_HALF:
       remove_flags_with_prob (&st->grid, &st->fg[pl], 0.5);
-      break;
+      break;*/
+      
     case MSG_C_IS_ALIVE:
       break;
 	case MSG_C_VALIDATE_TURN:

@@ -35,13 +35,32 @@ int build (struct grid *g, struct country *c, int pl, int i, int j) {
   return -1;
 }
 
+int build_tower (struct grid *g, struct country *c, int pl, int i, int j) {
+  if (i>=0 && i < g->width && j>=0 && j<g->height && g->tiles[i][j].pl == pl) {
+    int price = 0;
+    enum tile_class cl = grassland;
+    switch (g->tiles[i][j].cl) {
+      case grassland: price = PRICE_TOWER; cl = tower; break;      
+      default: return -1;
+    }
+    if (c->gold >= price) { g->tiles[i][j].cl = cl; c->gold -= price; return 0; }
+  }
+  return -1;
+}
+
 int degrade (struct grid *g, int i, int j) {
   if (i>=0 && i < g->width && j>=0 && j<g->height) {
-    enum tile_class cl = grassland;
+    enum tile_class cl = g->tiles[i][j].cl;
+    int owner = g->tiles[i][j].pl;
+    
     switch (g->tiles[i][j].cl) {
       case village: cl = grassland; break;
       case town: cl = village; break;
       case castle: cl = town; break;
+      case tower: 
+        //if( g->tiles[i][j].units[owner][citizen] <= get_max_pop( grassland ) )
+          cl=grassland;
+      break;
       default: return -1;
     }
     g->tiles[i][j].cl = cl; 
@@ -175,8 +194,8 @@ int builder_default (struct king *k, struct country *c, struct grid *g, struct f
       if (k->strategy == midas)
         base *= (k->value[i][j] + 10);
 
-      v = ok * base * (MAX_POP - army);
-      if (army < MAX_POP / 10) v = 0.0;
+      v = ok * base * (get_max_pop(g->tiles[i][j].cl) - army);
+      if (army < get_max_pop(g->tiles[i][j].cl) / 10) v = 0.0;
       
       if (v > 0.0 && v > v_best) {
         i_best = i;
@@ -257,7 +276,7 @@ void action_persistent_greedy (struct king *k, struct grid *g, struct flag_grid 
       }
       float v1 = (float) k->value[i][j] * (2.5*enemy - army) * pow(army, 0.7); 
       // weak opportunist
-      float v2 = (float) k->value[i][j] * (MAX_POP - (enemy - army)) * pow(army, 0.7) * 0.5; 
+      float v2 = (float) k->value[i][j] * (get_max_pop(g->tiles[i][j].cl) - (enemy - army)) * pow(army, 0.7) * 0.5; 
       if (enemy <= army) v2 = -10000;
       float v = MAX(v1,v2);
 
@@ -288,7 +307,7 @@ void action_opportunist (struct king *k, struct grid *g, struct flag_grid *fg) {
         if (p!= k->pl) 
           enemy = enemy + g->tiles[i][j].units[p][citizen];
       }
-      float v = (float) k->value[i][j] * (MAX_POP - (enemy - army)) * pow(army, 0.5); 
+      float v = (float) k->value[i][j] * (get_max_pop(g->tiles[i][j].cl) - (enemy - army)) * pow(army, 0.5); 
 
       if (enemy > army && v > 7000) 
         add_flag(g, fg, i, j, FLAG_POWER);
@@ -346,7 +365,7 @@ void action_noble (struct king *k, struct grid *g, struct flag_grid *fg) {
         if (p!= k->pl) 
           enemy = enemy + g->tiles[i][j].units[p][citizen];
       }
-      float v = (float) k->value[i][j] * (MAX_POP - (enemy - army)) * pow(army, 0.5); 
+      float v = (float) k->value[i][j] * (get_max_pop(g->tiles[i][j].cl) - (enemy - army)) * pow(army, 0.5); 
 
       if (enemy > army && v > 7000) {
         //add_flag(g, fg, i, j, FLAG_POWER);

@@ -371,6 +371,9 @@ int singleplayer_process_input (struct state *st, struct ui *ui, char c) {
     case 'v':
       build (&st->grid, &st->country[st->controlled], st->controlled, ui->cursor.i, ui->cursor.j);
       break;
+    case 't':
+      build_tower (&st->grid, &st->country[st->controlled], st->controlled, ui->cursor.i, ui->cursor.j);
+      break;
     
     case ESCAPE:
     case 91:

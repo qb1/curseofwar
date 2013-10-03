@@ -57,42 +57,42 @@ void state_init(struct state *s, struct basic_options *op, struct multi_options 
   s->time = (1850 + rand()%100) * 360 + rand()%360;
 
   /* player controlled from the keyboard */
-  s->controlled = 1;
+  s->controlled = 0;
   /* int players[] = {7, 2, 3, 5}; */
   /* int players[] = {2, 3, 4, 5, 6, 7}; */
 
-  int all_players[] = {1, 2, 3, 4, 5, 6, 7};
+  //int all_players[] = {1, 2, 3, 4, 5, 6, 7};
   int comp_players[MAX_PLAYER]; 
-  int comp_players_num = 7 - mop->clients_num;
+  int comp_players_num = op->loc_num - mop->clients_num;
  
   s->kings_num = comp_players_num;
   int ui_players[MAX_PLAYER];
   int ui_players_num = mop->clients_num;
   int i;
-  for (i=0; i<7; ++i) {
+  for (i=0; i<op->loc_num; ++i) {
     if (i<mop->clients_num)
-      ui_players[i] = all_players[i];
+      ui_players[i] = i; //all_players[i];
     else {
       int j = i - mop->clients_num; /* computer player index / king's index */
-      comp_players[j] = all_players[i];
+      comp_players[j] = i; //all_players[i];
       switch (i){
         case 1:
-          king_init (&s->king[j], i+1, opportunist, &s->grid, s->dif); 
+          king_init (&s->king[j], i, opportunist, &s->grid, s->dif); 
           break;
         case 2:
-          king_init (&s->king[j], i+1, one_greedy, &s->grid, s->dif);
+          king_init (&s->king[j], i, one_greedy, &s->grid, s->dif);
           break;
         case 3:
-          king_init (&s->king[j], i+1, none, &s->grid, s->dif);
+          king_init (&s->king[j], i, none, &s->grid, s->dif);
           break;
         case 4:
-          king_init (&s->king[j], i+1, aggr_greedy, &s->grid, s->dif);
+          king_init (&s->king[j], i, aggr_greedy, &s->grid, s->dif);
           break;
         case 5:
-          king_init (&s->king[j], i+1, noble, &s->grid, s->dif);
+          king_init (&s->king[j], i, noble, &s->grid, s->dif);
           break;
         case 6:
-          king_init (&s->king[j], i+1, persistent_greedy, &s->grid, s->dif);
+          king_init (&s->king[j], i, persistent_greedy, &s->grid, s->dif);
           break;
       }
     }
@@ -310,7 +310,7 @@ void simulate(struct state *s) {
       }
 
       /* burning cities */
-      if (defender_dmg > 2.0 * MAX_POP * ATTACK && is_a_city(t[i][j].cl)) {
+      if (defender_dmg > 2.0 * get_max_pop(t[i][j].cl) * ATTACK) {
         if (rand() % 1 == 0){
           need_to_reeval = 1;
           degrade (&s->grid, i, j);
@@ -333,7 +333,7 @@ void simulate(struct state *s) {
         int pop = t[i][j].units[owner][citizen];
         float fnpop = (float) pop * growth(t[i][j].cl);
         int npop = rnd_round(fnpop);
-        npop = MIN(npop, MAX_POP);
+        npop = MIN(npop, get_max_pop(t[i][j].cl));
         /* death */
         //npop = npop - rnd_round(0.01*pow(pop,1.5));
         //npop = npop - rnd_round(1.0e-20 * pow(2.0,pop));
@@ -366,7 +366,12 @@ void simulate(struct state *s) {
       for(p=0; p<MAX_PLAYER; ++p){        
         int initial_pop = t[i][j].units[p][citizen];
         
-        if( (is_a_city(t[i][j].cl) && initial_pop < MIN_POP_CITY) )
+        /* Cities tend to keep a minimum amount of people */
+        if( (is_a_city(t[i][j].cl) && initial_pop < MIN_POP_KEEP * MAX_VILLAGE) )
+          continue;
+        
+        /* Towers are defensive: people stay on guard */
+        if( (is_a_tower(t[i][j].cl) && initial_pop < 0.9 * MAX_POP_TOWER) )
           continue;
         
         int k_shift = rand() % DIRECTIONS;
@@ -382,7 +387,7 @@ void simulate(struct state *s) {
                 j+dj >= 0 && j+dj < s->grid.height &&
                 is_inhabitable (t[i+di][j+dj].cl) ) {
               
-              if( t[i+di][j+dj].units[p][citizen] >= MAX_POP )
+              if( t[i+di][j+dj].units[p][citizen] >= get_max_pop(t[i+di][j+dj].cl) )
               {
                 /* This tile is full, go to another one in a random direction */
                 int m, m_shift = rand() % DIRECTIONS;
@@ -393,7 +398,7 @@ void simulate(struct state *s) {
                   if ( i+di+ddi >= 0 && i+di+ddi < s->grid.width && 
                        j+dj+ddj >= 0 && j+dj+ddj < s->grid.height &&
                        is_inhabitable (t[i+di+ddi][j+dj+ddj].cl) &&
-                        t[i+di+ddi][j+dj+ddj].units[p][citizen] < MAX_POP ) {
+                        t[i+di+ddi][j+dj+ddj].units[p][citizen] < get_max_pop(t[i+di+ddi][j+dj+ddj].cl) ) {
                     di += ddi;
                     dj += ddj;
                   }
@@ -418,17 +423,22 @@ void simulate(struct state *s) {
               int pop = t[i][j].units[p][citizen];
               int dcall = MAX(0, s->fg[p].call[i+di][j+dj] - s->fg[p].call[i][j]);
               
-              if (!is_a_city(t[i][j].cl) && pop > 0) {
-                int dpop = rnd_round (MOVE * initial_pop + CALL_MOVE * dcall * initial_pop);
+              if (is_a_city(t[i][j].cl) && pop > MIN_POP_KEEP * get_max_pop(t[i][j].cl)) {
+                int dpop = rnd_round ( (initial_pop-(MIN_POP_KEEP * get_max_pop(t[i][j].cl)))/6 );
                 dpop = MIN(dpop, pop);
-                dpop = MIN(dpop, MAX_POP - t[i+di][j+dj].units[p][citizen]);
+                dpop = MIN(dpop, get_max_pop(t[i+di][j+dj].cl) - t[i+di][j+dj].units[p][citizen]);
                 t[i+di][j+dj].units[p][citizen] += dpop;
                 t[i][j].units[p][citizen] -= dpop;
-              }
-              if (is_a_city(t[i][j].cl) && pop > MIN_POP_CITY) {
-                int dpop = rnd_round ( (initial_pop-MIN_POP_CITY)/6 );
+              } else if (is_a_tower(t[i][j].cl) && pop > 1350) {
+                int dpop = rnd_round ( (float)(initial_pop-(1350))/(float)DIRECTIONS );
                 dpop = MIN(dpop, pop);
-                dpop = MIN(dpop, MAX_POP - t[i+di][j+dj].units[p][citizen]);
+                dpop = MIN(dpop, get_max_pop(t[i+di][j+dj].cl) - t[i+di][j+dj].units[p][citizen]);
+                t[i+di][j+dj].units[p][citizen] += dpop;
+                t[i][j].units[p][citizen] -= dpop;
+              } else if(  pop > 0 ) {
+                int dpop = rnd_round (MOVE * initial_pop + CALL_MOVE * dcall * initial_pop);
+                dpop = MIN(dpop, pop);
+                dpop = MIN(dpop, get_max_pop(t[i+di][j+dj].cl) - t[i+di][j+dj].units[p][citizen]);
                 t[i+di][j+dj].units[p][citizen] += dpop;
                 t[i][j].units[p][citizen] -= dpop;
               }

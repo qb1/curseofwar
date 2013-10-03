@@ -32,6 +32,13 @@
 #define RANDOM_INEQUALITY -1
 #define MAX_AVLBL_LOC 7
 
+#define MAX_POP 499  		 /* maximum polulation at a tile (for each player) */
+#define MAX_VILLAGE 499  	 /* maximum polulation at a tile (for each player) */
+#define MAX_TOWN 1499        /* maximum polulation at a tile (for each player) */
+#define MAX_CASTLE 2999  	 /* maximum polulation at a tile (for each player) */
+#define MAX_POP_TOWER 1499   /* maximum polulation at a tower */
+#define MIN_POP_KEEP 0.75   	 /* minimum percentage of pop before a keeper (city, tower) can migrate */
+
 /* enum unit_class
  *
  * Units/Creatures that can be controlled by the players:
@@ -49,11 +56,19 @@ enum unit_class { citizen=0 };
  *    (castles have the highest rate, while villages have the lowest).
  *
  * */
-enum tile_class { abyss=0, mountain=1, mine=2, grassland=3, village=4, town=5, castle=6 };
+enum tile_class { abyss=0, mountain=1, mine=2, grassland=3, village=4, town=5, castle=6, tower };
+
+/* get_max_pop(t)
+    returns max population of tile class */
+int get_max_pop(enum tile_class t);
 
 /* is_a_city(t)
     returns 1 for village, town, or castle */
 int is_a_city(enum tile_class t);
+
+/* is_a_city(t)
+    returns 1 for village, town, or castle */
+int is_a_tower(enum tile_class t);
 
 /* is_inhabitable(t)
     returns 1 for grassland, village, town, or castle */

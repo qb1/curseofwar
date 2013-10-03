@@ -148,8 +148,11 @@ int client_process_input (struct state *st, struct ui *ui, char c, int sfd, stru
       case 'x':
         send_msg_c (sfd, srv_addr, MSG_C_FLAG_OFF_ALL, 0, 0, 0);
         break;
-      case 'c':
+      /*case 'c':
         send_msg_c (sfd, srv_addr, MSG_C_FLAG_OFF_HALF, 0, 0, 0);
+        break;*/
+      case 't':
+        send_msg_c (sfd, srv_addr, MSG_C_BUILD_TOWER, ui->cursor.i, ui->cursor.j, 0);
         break;
       case 'r':
       case 'v':

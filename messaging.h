@@ -31,6 +31,7 @@
 #define MSG_C_FLAG_OFF 22
 #define MSG_C_FLAG_OFF_ALL 23
 #define MSG_C_FLAG_OFF_HALF 24
+#define MSG_C_BUILD_TOWER   25
 #define MSG_C_IS_ALIVE 30
 #define MSG_C_PAUSE    40
 #define MSG_C_UNPAUSE  41

@@ -32,6 +32,7 @@ OBJS_SDL = $(SRCS_SDL:.c=.o)
 
 EXECS = $(EXEC_NCURSES) $(EXEC_SDL)
 CFLAGS += -Wall -O2
+#CFLAGS += -Wall -g
 LDLIBS += -lm
 
 # Common sources and header

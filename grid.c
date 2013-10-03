@@ -28,6 +28,13 @@ int is_a_city(enum tile_class t) {
   }
 }
 
+int is_a_tower(enum tile_class t) {
+  switch(t) {
+    case tower: return 1;
+    default: return 0;
+  }
+}
+
 int is_inhabitable(enum tile_class t) {
   switch(t) {
     case abyss:
@@ -41,6 +48,16 @@ int is_visible(enum tile_class t) {
   switch(t) {
     case abyss: return 0;
     default: return 1;
+  }
+}
+
+int get_max_pop(enum tile_class t) {
+  switch(t) {
+    case village: return MAX_VILLAGE;
+    case town: return MAX_TOWN;
+    case castle: return MAX_CASTLE;
+    case tower: return MAX_POP_TOWER;
+    default: return MAX_POP;
   }
 }
 
@@ -422,8 +439,7 @@ int conflict (struct grid *g, struct loc loc_arr[], int available_loc_num,
     ihuman = loc_index[select];
   }
 
-  i = 0;
-  while (i < num) {
+  for (i=0; i < num; ++i) {
     int ii = loc_index[i];
     int x = chosen_loc[ ii ].i;
     int y = chosen_loc[ ii ].j;
@@ -440,7 +456,7 @@ int conflict (struct grid *g, struct loc loc_arr[], int available_loc_num,
       if (ii == ihuman)
         g->tiles[x][y].pl = ui_players[0];
       else 
-        g->tiles[x][y].pl = sh_players_comp[i];
+        g->tiles[x][y].pl = sh_players_comp[i-ui_players_num];
     }
     g->tiles[x][y].units[ g->tiles[x][y].pl ][citizen] = 10;
     
@@ -544,14 +560,14 @@ void recalc_call (struct grid *g, struct flag_grid *fg, int val) {
      TODO: not 0(n^2) */
   int largest_value;
   int ni, nj;
-  for( k=0, changed=1; k < (g->width*g->height) && changed; ++k )
+  for( k=0, changed=1; k < 20/*(g->width*g->height)*/ && changed; ++k )
   {
     changed = 0;
     for (i=0; i<g->width; ++i) {
       for (j=0; j<g->height; ++j) {
         if (is_inhabitable(g->tiles[i][j].cl)) {
           /* search for largest neighbor */
-          largest_value = fg->call[i][j] * 1.5;
+          largest_value = fg->call[i][j];
           
           for(k=0; k<DIRECTIONS; ++k) {
             ni = dirs[k].i + i;
@@ -564,7 +580,7 @@ void recalc_call (struct grid *g, struct flag_grid *fg, int val) {
             }            
           }
           
-          largest_value /= 1.5;
+          largest_value *= 0.666;
           
           if( largest_value > fg->call[i][j] ) {
             fg->call[i][j] = largest_value;
