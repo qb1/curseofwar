@@ -192,7 +192,7 @@ void run_server (struct state *st, int cl_num_need, char *s_server_port, struct 
             if (!found && cl_num < cl_num_need) { /* add the new client */
               cl[cl_num].name = "Jim";
               cl[cl_num].id = cl_num;
-              cl[cl_num].pl = cl_num + 1; /* must be non-zero */
+              cl[cl_num].pl = cl_num;
               cl[cl_num].sa = peer_addr;
                 
               addstr("!");

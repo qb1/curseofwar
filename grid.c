@@ -91,7 +91,7 @@ void grid_init(struct grid *g, int w, int h){
         g->tiles[i][j].pl = NEUTRAL;
       }
       else { 
-        x = 1 + rand() % (MAX_PLAYER - 1);
+        x = rand() % (MAX_PLAYER);
         if (x < MAX_PLAYER) g->tiles[i][j].pl = x;
         else
           g->tiles[i][j].pl = NEUTRAL; 
@@ -449,15 +449,15 @@ int conflict (struct grid *g, struct loc loc_arr[], int available_loc_num,
     else 
       g->tiles[x][y].pl = sh_players[i];
     */
-    if (ui_players_num > 1) {
+    //if (ui_players_num > 1) {
       g->tiles[x][y].pl = sh_players[i];
-    }
+    /*}
     else {
       if (ii == ihuman)
         g->tiles[x][y].pl = ui_players[0];
       else 
         g->tiles[x][y].pl = sh_players_comp[i-ui_players_num];
-    }
+    }*/
     g->tiles[x][y].units[ g->tiles[x][y].pl ][citizen] = 10;
     
     i++;

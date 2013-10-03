@@ -448,7 +448,7 @@ void output_timeline(struct state *st, struct ui *ui) {
     pl_arr[i] = 0;
     val_arr[i] = 0.0;
   }
-  for (p=1; p<MAX_PLAYER; ++p) {
+  for (p=0; p<MAX_PLAYER; ++p) {
     if (non_zero[p])
       insert_position(pl_arr, val_arr, store_pl_row[p], p, t->data[p][t->mark]);
   }
