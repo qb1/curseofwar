@@ -459,8 +459,6 @@ int conflict (struct grid *g, struct loc loc_arr[], int available_loc_num,
         g->tiles[x][y].pl = sh_players_comp[i-ui_players_num];
     }*/
     g->tiles[x][y].units[ g->tiles[x][y].pl ][citizen] = 10;
-    
-    i++;
   }
 
   /* free allocated memory */
